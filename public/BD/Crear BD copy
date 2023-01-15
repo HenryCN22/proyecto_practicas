@@ -1,0 +1,385 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+
+
+-- -----------------------------------------------------
+-- Schema comercial
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `comercial`;
+USE `comercial` ;
+
+-- -----------------------------------------------------
+-- Table `comercial`.`employees`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`employees` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(255) NOT NULL,
+  `dni` VARCHAR(255) NOT NULL,
+  `direccion` VARCHAR(255) NOT NULL,
+  `telefono` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `fecha_nac` DATE NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`document_types`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`document_types` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(255) NOT NULL,
+  `operacion` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`companies`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`companies` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `razon_social` VARCHAR(255) NOT NULL,
+  `ruc` VARCHAR(255) NOT NULL,
+  `representante` VARCHAR(255) NOT NULL,
+  `direccion` VARCHAR(255) NOT NULL,
+  `telefono` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `comercial`.`company_document_details`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`company_document_details` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `ultima_serie` VARCHAR(255) NOT NULL,
+  `ultimo_numero` VARCHAR(255) NOT NULL,
+  `document_type_id` INT NOT NULL,
+  `company_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_company_document_details_document_types`
+    FOREIGN KEY (`document_type_id`)
+    REFERENCES `comercial`.`document_types` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_company_document_details_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`suppliers`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`suppliers` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `company_id` INT NOT NULL,
+  `nombre` VARCHAR(255) NOT NULL,
+  `representante` VARCHAR(255) NOT NULL,
+  `ruc` VARCHAR(255) NOT NULL,
+  `direccion` VARCHAR(255) NOT NULL,
+  `telefono` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_suppliers_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`users`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`users` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `remember_token` VARCHAR(100) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  `employee_id` INT NOT NULL,
+  `company_id` INT NOT NULL,
+  `fecha_registro` DATE NOT NULL,
+  `tipo_usuario` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_users_employees1`
+    FOREIGN KEY (`employee_id`)
+    REFERENCES `comercial`.`employees` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`entries`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`entries` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `tipo_comprobante` VARCHAR(255) NOT NULL,
+  `serie_comprobante` VARCHAR(255) NOT NULL,
+  `num_comprobante` VARCHAR(255) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `impuesto` DECIMAL(8,2) NOT NULL,
+  `total` DECIMAL(8,2) NOT NULL,
+  `estado` VARCHAR(255) NOT NULL,
+  `supplier_id` INT NOT NULL,
+  `company_id` INT NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_entries_suppliers1`
+    FOREIGN KEY (`supplier_id`)
+    REFERENCES `comercial`.`suppliers` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_entries_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_entries_users1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `comercial`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`categories`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`categories` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `descripcion` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`units`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`units` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `descripcion` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`products`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`products` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(255) NOT NULL,
+  `descripcion` VARCHAR(255) NOT NULL,
+  `unit_id` INT NOT NULL,
+  `category_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_products_categories`
+    FOREIGN KEY (`category_id`)
+    REFERENCES `comercial`.`categories` (`id`),
+  CONSTRAINT `fk_products_units1`
+    FOREIGN KEY (`unit_id`)
+    REFERENCES `comercial`.`units` (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`entry_details`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`entry_details` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `stock_ingreso` INT NOT NULL,
+  `stock_actual` INT NOT NULL,
+  `precio_compra` DECIMAL(8,2) NOT NULL,
+  `precio_venta` DECIMAL(8,2) NOT NULL,
+  `entry_id` INT NOT NULL,
+  `product_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_entry_details_entries1`
+    FOREIGN KEY (`entry_id`)
+    REFERENCES `comercial`.`entries` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_entry_details_products1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `comercial`.`products` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`customers`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`customers` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `company_id` INT NOT NULL,
+  `nombre` VARCHAR(255) NOT NULL,
+  `direccion` VARCHAR(255) NOT NULL,
+  `telefono` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_customers_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`orders`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`orders` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `tipo_pedido` VARCHAR(255) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `estado` VARCHAR(255) NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `customer_id` INT NOT NULL,
+  `company_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_order_users1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `comercial`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_order_customers1`
+    FOREIGN KEY (`customer_id`)
+    REFERENCES `comercial`.`customers` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_order_companies1`
+    FOREIGN KEY (`company_id`)
+    REFERENCES `comercial`.`companies` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`order_details`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`order_details` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `precio_venta` DECIMAL(8,2) NOT NULL,
+  `cantidad` INT NOT NULL,
+  `order_id` INT NOT NULL,
+  `entry_detail_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_order_details_order1`
+    FOREIGN KEY (`order_id`)
+    REFERENCES `comercial`.`orders` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_order_details_entry_details1`
+    FOREIGN KEY (`entry_detail_id`)
+    REFERENCES `comercial`.`entry_details` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`multitable`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`multitable` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nombre_impuesto` VARCHAR(255) NOT NULL,
+  `porcentaje_impuesto` DECIMAL(5,2) NOT NULL,
+  `simbolo_moneda` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`sales`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`sales` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `tipo_venta` VARCHAR(45) NOT NULL,
+  `tipo_comprobante` VARCHAR(255) NOT NULL,
+  `serie_comprobante` VARCHAR(255) NOT NULL,
+  `num_comprobante` VARCHAR(255) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `impuesto` DECIMAL(8,2) NOT NULL,
+  `total` DECIMAL(8,2) NOT NULL,
+  `estado` VARCHAR(255) NOT NULL,
+  `order_id` INT NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_sales_orders1`
+    FOREIGN KEY (`order_id`)
+    REFERENCES `comercial`.`orders` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sales_users1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `comercial`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+USE `comercial` ;
+
+-- -----------------------------------------------------
+-- Table `comercial`.`failed_jobs`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`failed_jobs` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `connection` TEXT NOT NULL,
+  `queue` TEXT NOT NULL,
+  `payload` LONGTEXT NOT NULL,
+  `exception` LONGTEXT NOT NULL,
+  `failed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+-- -----------------------------------------------------
+-- Table `comercial`.`migrations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `comercial`.`migrations` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `migration` VARCHAR(255) NOT NULL,
+  `batch` INT NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
